@@ -32,9 +32,9 @@ const getCandidateTimeline = async (candidateId) => {
 };
 
 const updateCandidateStage = async ({ id, stage }) => {
-    if (import.meta.env.PROD) {
-      return Promise.resolve({ success: true });
-    }
+  if (import.meta.env.PROD) {
+    return Promise.resolve({ success: true });
+  }
   const { data } = await axios.patch(`/candidates/${id}`, { stage });
   return data;
 };
@@ -82,7 +82,9 @@ export function useUpdateCandidateStage() {
       queryClient.setQueryData(["candidates"], context.previousCandidates);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["candidates"] });
+      if (import.meta.env.DEV) {
+        queryClient.invalidateQueries({ queryKey: ["candidates"] });
+      }
     },
   });
 }

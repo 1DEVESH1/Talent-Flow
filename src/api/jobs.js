@@ -8,19 +8,19 @@ function arrayMove(array, from, to) {
 }
 
 const getJobs = async (filters) => {
-   if (import.meta.env.PROD) {
-     const response = await fetch("/api/jobs.json");
-     let jobs = await response.json();
-     if (filters?.search) {
-       jobs = jobs.filter((j) =>
-         j.title.toLowerCase().includes(filters.search.toLowerCase())
-       );
-     }
-     if (filters?.status && filters.status !== "all") {
-       jobs = jobs.filter((j) => j.status === filters.status);
-     }
-     return jobs;
-   }
+  if (import.meta.env.PROD) {
+    const response = await fetch("/api/jobs.json");
+    let jobs = await response.json();
+    if (filters?.search) {
+      jobs = jobs.filter((j) =>
+        j.title.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+    if (filters?.status && filters.status !== "all") {
+      jobs = jobs.filter((j) => j.status === filters.status);
+    }
+    return jobs;
+  }
   const params = new URLSearchParams(filters).toString();
   const { data } = await axios.get(`/jobs?${params}`);
   return data;
@@ -37,19 +37,28 @@ const getJob = async (jobId) => {
 };
 
 const createJob = async (newJob) => {
+  if (import.meta.env.PROD) {
+    return Promise.resolve({ ...newJob, id: Date.now() });
+  }
   const { data } = await axios.post("/jobs", newJob);
   return data;
 };
 
 const updateJob = async ({ id, ...updates }) => {
+  if (import.meta.env.PROD) {
+    return Promise.resolve({ success: true });
+  }
   const { data } = await axios.patch(`/jobs/${id}`, updates);
   return data;
 };
 
 const reorderJob = async ({ fromId, fromOrder, toOrder }) => {
+  if (import.meta.env.PROD) {
+    return Promise.resolve({ success: true });
+  }
   const { data } = await axios.patch(`/jobs/${fromId}/reorder`, {
     fromId,
-    fromOrder, 
+    fromOrder,
     toOrder,
   });
   return data;
@@ -66,7 +75,7 @@ export function useGetJob(jobId) {
   return useQuery({
     queryKey: ["jobs", jobId],
     queryFn: () => getJob(jobId),
-    enabled: !!jobId, 
+    enabled: !!jobId,
   });
 }
 
@@ -75,7 +84,9 @@ export function useCreateJob() {
   return useMutation({
     mutationFn: createJob,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      if (import.meta.env.DEV) {
+        queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      }
     },
   });
 }
@@ -96,6 +107,11 @@ export function useUpdateJob(queryKey) {
     },
     onError: (err, updatedJob, context) => {
       queryClient.setQueryData(context.queryKey, context.previousJobs);
+    },
+    onSettled: () => {
+      if (import.meta.env.DEV) {
+        queryClient.invalidateQueries({ queryKey });
+      }
     },
   });
 }
@@ -125,11 +141,13 @@ export function useReorderJob(queryKey) {
       }
     },
     onSettled: (data, error, variables, context) => {
-      setTimeout(() => {
-        queryClient.invalidateQueries({
-          queryKey: context?.queryKey ?? queryKey,
-        });
-      }, 250);
+      if (import.meta.env.DEV) {
+        setTimeout(() => {
+          queryClient.invalidateQueries({
+            queryKey: context?.queryKey ?? queryKey,
+          });
+        }, 250);
+      }
     },
   });
 }
