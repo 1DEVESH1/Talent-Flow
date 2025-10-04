@@ -1,15 +1,19 @@
 import { useForm } from "react-hook-form";
 import { useCreateJob, useUpdateJob } from "../../api/jobs";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function JobFormModal({ isOpen, onClose, job, jobsQueryKey }) {
+  const [tagsInput, setTagsInput] = useState(
+    job && job.tags ? job.tags.join(", ") : ""
+  );
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
   } = useForm({
-    defaultValues: job || { title: "", slug: "" },
+    defaultValues: job || { title: "", slug: "", tags: [] },
   });
 
   const createJobMutation = useCreateJob();
@@ -18,7 +22,8 @@ export function JobFormModal({ isOpen, onClose, job, jobsQueryKey }) {
 
   useEffect(() => {
     if (isOpen) {
-      reset(job || { title: "", slug: "" });
+      reset(job || { title: "", slug: "", tags: [] });
+      setTagsInput(job && job.tags ? job.tags.join(", ") : "");
     }
   }, [job, isOpen, reset]);
 
@@ -37,10 +42,15 @@ export function JobFormModal({ isOpen, onClose, job, jobsQueryKey }) {
   }, [isOpen, onClose]);
 
   const onSubmit = (data) => {
+    const tagsArray = tagsInput
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag !== "");
+    const jobData = { ...data, tags: tagsArray };
     if (job) {
-      updateJobMutation.mutate({ id: job.id, ...data });
+      updateJobMutation.mutate({ id: job.id, ...jobData });
     } else {
-      createJobMutation.mutate(data);
+      createJobMutation.mutate(jobData);
     }
     onClose();
   };
@@ -66,7 +76,7 @@ export function JobFormModal({ isOpen, onClose, job, jobsQueryKey }) {
               &times;
             </button>
           </div>
-          
+
           <div className="p-6">
             <label
               htmlFor="title"
@@ -86,7 +96,20 @@ export function JobFormModal({ isOpen, onClose, job, jobsQueryKey }) {
                 {errors.title.message}
               </p>
             )}
-            {/* Add other form fields like slug, tags, etc. here */}
+
+            <label
+              htmlFor="tags"
+              className="block text-sm font-medium text-gray-700 mt-4"
+            >
+              Tags (e.g. Full-time, Remote, Contract)
+            </label>
+            <input
+              id="tags"
+              type="text"
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
 
           {/* Modal Footer */}

@@ -3,7 +3,7 @@ import { Routes, Route, Outlet } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import { JobsBoard } from "./pages/jobs/JobsBoard";
 import { CandidatesBoard } from "./pages/candidates/CandidatesBoard";
-import Assignments from "./pages/Assignments";
+import Assignments from "./pages/Assessment";
 import JobDetailsPage from "./pages/jobs/JobDetailsPage";
 import { CandidateProfilePage } from "./pages/candidates/CandidateProfilePage";
 const Home = () => (

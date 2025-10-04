@@ -177,4 +177,19 @@ export const handlers = [
 
     return HttpResponse.json({ success: true, jobId: numericJobId });
   }),
+
+  http.post("/assessments/:jobId/submit", async ({ request, params }) => {
+    await delay(await randomLatency());
+    const { jobId } = params;
+    const submissionData = await request.json();
+
+    const submission = {
+      ...submissionData,
+      jobId: parseInt(jobId, 10),
+      timestamp: new Date(),
+    };
+    const id = await db.submissions.add(submission);
+
+    return HttpResponse.json({ success: true, id });
+  }),
 ];

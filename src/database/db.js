@@ -7,5 +7,5 @@ db.version(1).stores({
   candidates: "++id,name,email,stage,jobId",
   assessments: "jobId",
   timeline: "++id, candidateId, timestamp",
-  submissions: "++id, jobId, candidateId, timestamp"
+  submissions: "++id, jobId, candidateId, timestamp",
 });
