@@ -8,12 +8,30 @@ function arrayMove(array, from, to) {
 }
 
 const getJobs = async (filters) => {
+   if (import.meta.env.PROD) {
+     const response = await fetch("/api/jobs.json");
+     let jobs = await response.json();
+     if (filters?.search) {
+       jobs = jobs.filter((j) =>
+         j.title.toLowerCase().includes(filters.search.toLowerCase())
+       );
+     }
+     if (filters?.status && filters.status !== "all") {
+       jobs = jobs.filter((j) => j.status === filters.status);
+     }
+     return jobs;
+   }
   const params = new URLSearchParams(filters).toString();
   const { data } = await axios.get(`/jobs?${params}`);
   return data;
 };
 
 const getJob = async (jobId) => {
+  if (import.meta.env.PROD) {
+    const response = await fetch("/api/jobs.json");
+    const jobs = await response.json();
+    return jobs.find((j) => j.id === parseInt(jobId, 10));
+  }
   const { data } = await axios.get(`/jobs/${jobId}`);
   return data;
 };
@@ -48,7 +66,7 @@ export function useGetJob(jobId) {
   return useQuery({
     queryKey: ["jobs", jobId],
     queryFn: () => getJob(jobId),
-    enabled: !!jobId, // The query will not run until the jobId is available
+    enabled: !!jobId, 
   });
 }
 
