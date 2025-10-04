@@ -5,9 +5,12 @@ const randomFail = () => Math.random() < 0.1;
 const randomLatency = () => Math.random() * 1000 + 200;
 
 export const handlers = [
+  // --- JOBS ---
   http.get("/jobs", async ({ request }) => {
     await delay(await randomLatency());
     const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get("page") || "1", 10);
+    const pageSize = parseInt(url.searchParams.get("pageSize") || "10", 10);
     const search = url.searchParams.get("search") || "";
     const status = url.searchParams.get("status");
     let jobsQuery;
@@ -16,25 +19,24 @@ export const handlers = [
     } else {
       jobsQuery = db.jobs.toCollection();
     }
-    let jobs = await jobsQuery.sortBy("order");
+    let allJobs = await jobsQuery.sortBy("order");
     if (search) {
-      jobs = jobs.filter((j) =>
+      allJobs = allJobs.filter((j) =>
         j.title.toLowerCase().includes(search.toLowerCase())
       );
     }
-    return HttpResponse.json(jobs);
+    const totalCount = allJobs.length;
+    const paginatedJobs = allJobs.slice((page - 1) * pageSize, page * pageSize);
+    return HttpResponse.json({ jobs: paginatedJobs, totalCount });
   }),
 
   http.get("/jobs/:jobId", async ({ params }) => {
     await delay(await randomLatency());
     const { jobId } = params;
     const job = await db.jobs.get(parseInt(jobId, 10));
-
-    if (!job) {
-      return new HttpResponse(null, { status: 404 });
-    }
-
-    return HttpResponse.json(job);
+    return job
+      ? HttpResponse.json(job)
+      : new HttpResponse(null, { status: 404 });
   }),
 
   http.post("/jobs", async ({ request }) => {
@@ -84,6 +86,26 @@ export const handlers = [
     return HttpResponse.json({ success: true });
   }),
 
+  // --- CANDIDATES ---
+  http.get("/candidates/:candidateId", async ({ params }) => {
+    await delay(await randomLatency());
+    const { candidateId } = params;
+    const candidate = await db.candidates.get(parseInt(candidateId, 10));
+    return candidate
+      ? HttpResponse.json(candidate)
+      : new HttpResponse(null, { status: 404 });
+  }),
+
+  http.get("/candidates/:candidateId/timeline", async ({ params }) => {
+    await delay(await randomLatency());
+    const { candidateId } = params;
+    const events = await db.timeline_events
+      .where("candidateId")
+      .equals(parseInt(candidateId, 10))
+      .sortBy("timestamp");
+    return HttpResponse.json(events);
+  }),
+
   http.get("/candidates", async ({ request }) => {
     await delay(await randomLatency());
     const url = new URL(request.url);
@@ -100,35 +122,59 @@ export const handlers = [
   http.patch("/candidates/:id", async ({ request, params }) => {
     await delay(await randomLatency());
     if (randomFail()) return new HttpResponse(null, { status: 500 });
+
     const { id } = params;
     const updates = await request.json();
-    await db.candidates.update(parseInt(id, 10), updates);
+    const numericId = parseInt(id, 10);
+
+    if (updates.stage) {
+      await db.timeline_events.add({
+        candidateId: numericId,
+        event: `Moved to "${updates.stage}" stage`,
+        timestamp: new Date(),
+        date: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+      });
+    }
+
+    await db.candidates.update(numericId, updates);
     return HttpResponse.json({ success: true });
   }),
-  
-  http.get("/candidates/:candidateId", async ({ params }) => {
+
+  // --- ASSESSMENTS ---
+  http.get("/assessments/:jobId", async ({ params }) => {
     await delay(await randomLatency());
-    const { candidateId } = params;
-    const candidate = await db.candidates.get(parseInt(candidateId, 10));
-    return candidate
-      ? HttpResponse.json(candidate)
+    const { jobId } = params;
+    const assessment = await db.assessments
+      .where({ jobId: parseInt(jobId, 10) })
+      .first();
+
+    return assessment
+      ? HttpResponse.json(assessment)
       : new HttpResponse(null, { status: 404 });
   }),
 
-  http.get("/candidates/:candidateId/timeline", async () => {
+  http.put("/assessments/:jobId", async ({ request, params }) => {
     await delay(await randomLatency());
-    // In a real app, this data would come from the database.
-    // For this project, we'll return a mocked static timeline.
-    const mockTimeline = [
-      { event: "Applied for Senior Developer", date: "2024-09-01" },
-      { event: "Moved to Screen stage", date: "2024-09-03" },
-      {
-        event: "Note added by HR",
-        content: "Strong resume, seems like a good fit.",
-        date: "2024-09-03",
-      },
-      { event: "Moved to Tech stage", date: "2024-09-10" },
-    ];
-    return HttpResponse.json(mockTimeline);
+    if (randomFail()) return new HttpResponse(null, { status: 500 });
+
+    const { jobId } = params;
+    const config = await request.json();
+    const numericJobId = parseInt(jobId, 10);
+
+    const existing = await db.assessments
+      .where({ jobId: numericJobId })
+      .first();
+
+    if (existing) {
+      await db.assessments.update(existing.id, { config: config.config });
+    } else {
+      await db.assessments.add({ jobId: numericJobId, config: config.config });
+    }
+
+    return HttpResponse.json({ success: true, jobId: numericJobId });
   }),
 ];

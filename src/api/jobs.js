@@ -8,20 +8,30 @@ function arrayMove(array, from, to) {
 }
 
 const getJobs = async (filters) => {
+  const { page = 1, pageSize = 10, ...otherFilters } = filters;
+
   if (import.meta.env.PROD) {
     const response = await fetch("/api/jobs.json");
-    let jobs = await response.json();
-    if (filters?.search) {
-      jobs = jobs.filter((j) =>
-        j.title.toLowerCase().includes(filters.search.toLowerCase())
+    let allJobs = await response.json();
+    if (otherFilters.search) {
+      allJobs = allJobs.filter((j) =>
+        j.title.toLowerCase().includes(otherFilters.search.toLowerCase())
       );
     }
-    if (filters?.status && filters.status !== "all") {
-      jobs = jobs.filter((j) => j.status === filters.status);
+    if (otherFilters.status && otherFilters.status !== "all") {
+      allJobs = allJobs.filter((j) => j.status === otherFilters.status);
     }
-    return jobs;
+
+    const totalCount = allJobs.length;
+    const paginatedJobs = allJobs.slice((page - 1) * pageSize, page * pageSize);
+    return { jobs: paginatedJobs, totalCount };
   }
-  const params = new URLSearchParams(filters).toString();
+
+  const params = new URLSearchParams({
+    page,
+    pageSize,
+    ...otherFilters,
+  }).toString();
   const { data } = await axios.get(`/jobs?${params}`);
   return data;
 };
@@ -52,13 +62,13 @@ const updateJob = async ({ id, ...updates }) => {
   return data;
 };
 
-const reorderJob = async ({ fromId, fromOrder, toOrder }) => {
+const reorderJob = async (payload) => {
   if (import.meta.env.PROD) {
     return Promise.resolve({ success: true });
   }
+  const { fromId, toOrder } = payload;
   const { data } = await axios.patch(`/jobs/${fromId}/reorder`, {
     fromId,
-    fromOrder,
     toOrder,
   });
   return data;
@@ -97,16 +107,17 @@ export function useUpdateJob(queryKey) {
     mutationFn: updateJob,
     onMutate: async (updatedJob) => {
       await queryClient.cancelQueries({ queryKey });
-      const previousJobs = queryClient.getQueryData(queryKey);
-      queryClient.setQueryData(queryKey, (oldJobs) =>
-        oldJobs.map((job) =>
+      const previousData = queryClient.getQueryData(queryKey);
+      queryClient.setQueryData(queryKey, (oldData) => {
+        const newJobs = oldData.jobs.map((job) =>
           job.id === updatedJob.id ? { ...job, ...updatedJob } : job
-        )
-      );
-      return { previousJobs, queryKey };
+        );
+        return { ...oldData, jobs: newJobs };
+      });
+      return { previousData, queryKey };
     },
-    onError: (err, updatedJob, context) => {
-      queryClient.setQueryData(context.queryKey, context.previousJobs);
+    onError: (context) => {
+      queryClient.setQueryData(context.queryKey, context.previousData);
     },
     onSettled: () => {
       if (import.meta.env.DEV) {
@@ -122,25 +133,25 @@ export function useReorderJob(queryKey) {
     mutationFn: ({ payload }) => reorderJob(payload),
     onMutate: async ({ active, over }) => {
       await queryClient.cancelQueries({ queryKey });
-      const previousJobs = queryClient.getQueryData(queryKey);
-      queryClient.setQueryData(queryKey, (oldJobs) => {
-        if (!oldJobs) return [];
-        const oldIndex = oldJobs.findIndex((j) => j.id === active.id);
-        const newIndex = oldJobs.findIndex((j) => j.id === over.id);
-        const newJobs = arrayMove(oldJobs, oldIndex, newIndex);
-        return newJobs.map((job, idx) => ({
-          ...job,
-          order: idx + 1,
-        }));
+      const previousData = queryClient.getQueryData(queryKey);
+      queryClient.setQueryData(queryKey, (oldData) => {
+        if (!oldData?.jobs) return [];
+        const oldIndex = oldData.jobs.findIndex((j) => j.id === active.id);
+        const newIndex = oldData.jobs.findIndex((j) => j.id === over.id);
+        const newJobs = arrayMove(oldData.jobs, oldIndex, newIndex);
+        return {
+          ...oldData,
+          jobs: newJobs.map((job, idx) => ({ ...job, order: idx + 1 })),
+        };
       });
-      return { previousJobs, queryKey };
+      return { previousData, queryKey };
     },
-    onError: (err, variables, context) => {
-      if (context?.previousJobs) {
-        queryClient.setQueryData(context.queryKey, context.previousJobs);
+    onError: (context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(context.queryKey, context.previousData);
       }
     },
-    onSettled: (data, error, variables, context) => {
+    onSettled: (context) => {
       if (import.meta.env.DEV) {
         setTimeout(() => {
           queryClient.invalidateQueries({

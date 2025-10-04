@@ -5,6 +5,7 @@ import { JobsBoard } from "./pages/jobs/JobsBoard";
 import { CandidatesBoard } from "./pages/candidates/CandidatesBoard";
 import Assignments from "./pages/Assignments";
 import JobDetailsPage from "./pages/jobs/JobDetailsPage";
+import { CandidateProfilePage } from "./pages/candidates/CandidateProfilePage";
 const Home = () => (
   <div>
     <h1 className="text-3xl font-bold">Welcome to the Dashboard</h1>
@@ -31,9 +32,13 @@ function App() {
       <Route path="/" element={<AppLayout />}>
         <Route index element={<Home />} />
         <Route path="jobs" element={<JobsBoard />} />
-        <Route path="candidates" element={<CandidatesBoard />} />
-        <Route path="assignments" element={<Assignments />} />
         <Route path="/jobs/:jobId" element={<JobDetailsPage />} />
+        <Route path="candidates" element={<CandidatesBoard />} />
+        <Route
+          path="candidates/:candidateId"
+          element={<CandidateProfilePage />}
+        />
+        <Route path="assignments" element={<Assignments />} />
       </Route>
     </Routes>
   );
