@@ -12,7 +12,6 @@ export async function seedDatabase() {
   const jobs = [];
   const stages = ["applied", "screen", "tech", "offer", "hired", "rejected"];
 
-  // 1. Seed Jobs
   for (let i = 0; i < 25; i++) {
     jobs.push({
       title: faker.person.jobTitle(),
@@ -27,7 +26,6 @@ export async function seedDatabase() {
   }
   const addedJobs = await db.jobs.bulkAdd(jobs, { allKeys: true });
 
-  // 2. Seed Candidates
   const candidates = [];
   for (let i = 0; i < 1000; i++) {
     candidates.push({

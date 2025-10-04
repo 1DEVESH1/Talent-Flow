@@ -1,17 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-// Helper function for optimistic reordering
 function arrayMove(array, from, to) {
   const newArray = array.slice();
   newArray.splice(to, 0, newArray.splice(from, 1)[0]);
   return newArray;
 }
 
-// --- API Functions ---
 const getJobs = async (filters) => {
   const params = new URLSearchParams(filters).toString();
   const { data } = await axios.get(`/jobs?${params}`);
+  return data;
+};
+
+const getJob = async (jobId) => {
+  const { data } = await axios.get(`/jobs/${jobId}`);
   return data;
 };
 
@@ -28,17 +31,24 @@ const updateJob = async ({ id, ...updates }) => {
 const reorderJob = async ({ fromId, fromOrder, toOrder }) => {
   const { data } = await axios.patch(`/jobs/${fromId}/reorder`, {
     fromId,
-    fromOrder, // Now it sends fromOrder
+    fromOrder, 
     toOrder,
   });
   return data;
 };
 
-// --- Query & Mutation Hooks ---
 export function useGetJobs(filters) {
   return useQuery({
     queryKey: ["jobs", filters],
     queryFn: () => getJobs(filters),
+  });
+}
+
+export function useGetJob(jobId) {
+  return useQuery({
+    queryKey: ["jobs", jobId],
+    queryFn: () => getJob(jobId),
+    enabled: !!jobId, // The query will not run until the jobId is available
   });
 }
 
@@ -72,43 +82,31 @@ export function useUpdateJob(queryKey) {
   });
 }
 
-
-// In api/jobs.js
-
-// api/jobs.js
-
 export function useReorderJob(queryKey) {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({ payload }) => reorderJob(payload),
     onMutate: async ({ active, over }) => {
       await queryClient.cancelQueries({ queryKey });
       const previousJobs = queryClient.getQueryData(queryKey);
-
       queryClient.setQueryData(queryKey, (oldJobs) => {
         if (!oldJobs) return [];
         const oldIndex = oldJobs.findIndex((j) => j.id === active.id);
         const newIndex = oldJobs.findIndex((j) => j.id === over.id);
-
         const newJobs = arrayMove(oldJobs, oldIndex, newIndex);
         return newJobs.map((job, idx) => ({
           ...job,
           order: idx + 1,
         }));
       });
-
       return { previousJobs, queryKey };
     },
-
     onError: (err, variables, context) => {
       if (context?.previousJobs) {
         queryClient.setQueryData(context.queryKey, context.previousJobs);
       }
     },
-
     onSettled: (data, error, variables, context) => {
-      // small delay lets DnD-kit cleanup before refetch
       setTimeout(() => {
         queryClient.invalidateQueries({
           queryKey: context?.queryKey ?? queryKey,

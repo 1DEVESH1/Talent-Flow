@@ -1,8 +1,9 @@
 import React from "react";
+import { Link } from "react-router-dom"; 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-// Style lookup objects for status tags and archive buttons
+
 const statusStyles = {
   active: "bg-green-100 text-green-800",
   archived: "bg-red-100 text-red-800",
@@ -33,10 +34,12 @@ const SortableJobItem = ({ job, onEdit, onArchive }) => {
     >
       <div className="flex items-center">
         {/* Job Title and Order */}
-        <div>
-          <p className="font-bold text-gray-800">{job.title}</p>
+        <Link to={`/jobs/${job.id}`} className="flex-grow">
+          <p className="font-bold text-gray-800 hover:text-blue-600 transition-colors">
+            {job.title}
+          </p>
           <p className="text-sm text-gray-500">Order: {job.order}</p>
-        </div>
+        </Link>
 
         {/* Spacer */}
         <div className="flex-grow" />

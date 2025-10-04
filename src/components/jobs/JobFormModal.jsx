@@ -16,14 +16,12 @@ export function JobFormModal({ isOpen, onClose, job, jobsQueryKey }) {
   const updateJobMutation = useUpdateJob(jobsQueryKey);
   const modalRef = useRef();
 
-  // Reset form when the job data changes (e.g., when opening for a new or different job)
   useEffect(() => {
     if (isOpen) {
       reset(job || { title: "", slug: "" });
     }
   }, [job, isOpen, reset]);
 
-  // Handle clicks outside the modal to close it
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
@@ -50,15 +48,12 @@ export function JobFormModal({ isOpen, onClose, job, jobsQueryKey }) {
   if (!isOpen) return null;
 
   return (
-    // Modal Backdrop
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      {/* Modal Content */}
       <div
         ref={modalRef}
         className="bg-white rounded-lg shadow-xl w-full max-w-md"
       >
         <form onSubmit={handleSubmit(onSubmit)}>
-          {/* Modal Header */}
           <div className="flex justify-between items-center p-4 border-b">
             <h2 className="text-xl font-semibold">
               {job ? "Edit Job" : "Create New Job"}
@@ -71,8 +66,7 @@ export function JobFormModal({ isOpen, onClose, job, jobsQueryKey }) {
               &times;
             </button>
           </div>
-
-          {/* Modal Body */}
+          
           <div className="p-6">
             <label
               htmlFor="title"

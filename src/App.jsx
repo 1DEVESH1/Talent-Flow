@@ -1,9 +1,10 @@
 import React from "react";
 import { Routes, Route, Outlet } from "react-router-dom";
-import Sidebar from "./components/Sidebar"; 
-import { JobsBoard } from "./pages/JobsBoard";
-import Candidates from "./pages/Candidates";
+import Sidebar from "./components/Sidebar";
+import { JobsBoard } from "./pages/jobs/JobsBoard";
+import { CandidatesBoard } from "./pages/candidates/CandidatesBoard";
 import Assignments from "./pages/Assignments";
+import JobDetailsPage from "./pages/jobs/JobDetailsPage";
 const Home = () => (
   <div>
     <h1 className="text-3xl font-bold">Welcome to the Dashboard</h1>
@@ -30,8 +31,9 @@ function App() {
       <Route path="/" element={<AppLayout />}>
         <Route index element={<Home />} />
         <Route path="jobs" element={<JobsBoard />} />
-        <Route path="candidates" element={<Candidates />} />
-        <Route path="assignments" element={<Assignments />} />  
+        <Route path="candidates" element={<CandidatesBoard />} />
+        <Route path="assignments" element={<Assignments />} />
+        <Route path="/jobs/:jobId" element={<JobDetailsPage />} />
       </Route>
     </Routes>
   );

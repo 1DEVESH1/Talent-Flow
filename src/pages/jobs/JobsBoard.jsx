@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { useGetJobs, useReorderJob, useUpdateJob } from "../api/jobs";
-import { JobFormModal } from "../components/jobs/JobFormModal";
-import SortableJobItem from "../components/jobs/SortableJobItem";
+import { useGetJobs, useReorderJob, useUpdateJob } from "../../api/jobs";
+import { JobFormModal } from "../../components/jobs/JobFormModal";
+import SortableJobItem from "../../components/jobs/SortableJobItem";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   SortableContext,
