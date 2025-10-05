@@ -1,7 +1,30 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
-import { useGetCandidate, useGetCandidateTimeline } from "../../api/candidates";
+import {
+  useGetCandidate,
+  useGetCandidateTimeline,
+  useAddCandidateNote,
+} from "../../api/candidates"; 
 import { HiOutlineCalendar, HiOutlinePencilAlt } from "react-icons/hi";
+import { AddNoteForm } from "../../components/candidates/AddNoteForm"; 
+
+// A simple utility to parse and render @mentions
+const renderWithMentions = (text) => {
+  if (!text) return null;
+  const parts = text.split(/(@\w+)/g);
+  return parts.map((part, i) =>
+    part.startsWith("@") ? (
+      <span
+        key={i}
+        className="font-semibold text-blue-600 bg-blue-100 rounded px-1"
+      >
+        {part}
+      </span>
+    ) : (
+      part
+    )
+  );
+};
 
 const TimelineItem = ({ event }) => (
   <div className="flex gap-4">
@@ -14,11 +37,13 @@ const TimelineItem = ({ event }) => (
     <div className="pb-8">
       <p className="font-semibold text-gray-800">{event.event}</p>
       {event.content && (
-        <p className="text-gray-600 bg-gray-100 p-2 rounded-md mt-1">
-          {event.content}
-        </p>
+        <div className="text-gray-600 bg-gray-100 p-3 rounded-md mt-1">
+          {renderWithMentions(event.content)}
+        </div>
       )}
-      <p className="text-sm text-gray-500 mt-1">{event.date}</p>
+      <p className="text-sm text-gray-500 mt-1">
+        {new Date(event.timestamp).toLocaleString()}
+      </p>
     </div>
   </div>
 );
@@ -36,6 +61,12 @@ export const CandidateProfilePage = () => {
     isError: isErrorTimeline,
   } = useGetCandidateTimeline(candidateId);
 
+  const addNoteMutation = useAddCandidateNote();
+
+  const handleAddNote = (noteContent) => {
+    addNoteMutation.mutate({ candidateId, content: noteContent });
+  };
+
   if (isLoadingCandidate || isLoadingTimeline)
     return <div className="p-8">Loading profile...</div>;
   if (isErrorCandidate || isErrorTimeline)
@@ -52,8 +83,8 @@ export const CandidateProfilePage = () => {
         &larr; Back to Candidates Board
       </Link>
 
-      <div className="grid grid-cols-3 gap-8">
-        <div className="col-span-1 bg-white p-6 rounded-lg shadow-md h-fit">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-1 bg-white p-6 rounded-lg shadow-md h-fit">
           <h2 className="text-2xl font-bold mb-1">{candidate?.name}</h2>
           <p className="text-gray-600 mb-4">{candidate?.email}</p>
           <span
@@ -67,12 +98,21 @@ export const CandidateProfilePage = () => {
           </span>
         </div>
 
-        <div className="col-span-2 bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-bold mb-4">Timeline</h3>
+        <div className="md:col-span-2 bg-white p-6 rounded-lg shadow-md">
+          <AddNoteForm
+            onSubmit={handleAddNote}
+            isSubmitting={addNoteMutation.isPending}
+          />
+
+          <h3 className="text-xl font-bold mb-4 border-t pt-6">Timeline</h3>
           <div>
-            {timeline?.map((event, index) => (
-              <TimelineItem key={index} event={event} />
-            ))}
+            {timeline?.length > 0 ? (
+              timeline.map((event, index) => (
+                <TimelineItem key={index} event={event} />
+              ))
+            ) : (
+              <p className="text-gray-500">No timeline events yet.</p>
+            )}
           </div>
         </div>
       </div>

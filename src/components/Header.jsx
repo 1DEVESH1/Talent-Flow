@@ -1,7 +1,7 @@
 import React from "react";
 import { FaBars } from "react-icons/fa";
 import adminIcon from "../assets/icons8-admin-50.png"; 
-
+import { Link } from "react-router-dom";
 const Header = ({ onMenuClick }) => {
   return (
     <header className="bg-white shadow-md p-4 flex justify-between items-center">
@@ -12,7 +12,11 @@ const Header = ({ onMenuClick }) => {
         >
           <FaBars size={24} />
         </button>
-        <div className="text-2xl font-bold text-blue-600">Talent Flow</div>
+        <div className="text-2xl font-bold text-blue-600">
+            <Link to="/">
+                Talent Flow
+            </Link>
+        </div>
       </div>
       <div className="flex items-center space-x-4">
         <img

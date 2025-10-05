@@ -151,6 +151,27 @@ export const handlers = [
     return HttpResponse.json({ success: true });
   }),
 
+  http.post(
+    "/candidates/:candidateId/timeline",
+    async ({ request, params }) => {
+      await delay(await randomLatency());
+      if (randomFail()) return new HttpResponse(null, { status: 500 });
+
+      const { candidateId } = params;
+      const { content } = await request.json();
+
+      const newEvent = {
+        candidateId: parseInt(candidateId, 10),
+        event: "Note added",
+        content,
+        timestamp: new Date(),
+      };
+
+      const id = await db.timeline.add(newEvent);
+      return HttpResponse.json({ ...newEvent, id }, { status: 201 });
+    }
+  ),
+
   // --- ASSESSMENTS ---
   http.get("/assessments/:jobId", async ({ params }) => {
     await delay(await randomLatency());
@@ -169,17 +190,15 @@ export const handlers = [
     if (randomFail()) return new HttpResponse(null, { status: 500 });
 
     const { jobId } = params;
-    const config = await request.json();
+    const { config } = await request.json(); 
     const numericJobId = parseInt(jobId, 10);
 
-    const existing = await db.assessments
-      .where({ jobId: numericJobId })
-      .first();
+    const existing = await db.assessments.get(numericJobId); 
 
     if (existing) {
-      await db.assessments.update(existing.id, { config: config.config });
+      await db.assessments.update(numericJobId, { config: config });
     } else {
-      await db.assessments.add({ jobId: numericJobId, config: config.config });
+      await db.assessments.add({ jobId: numericJobId, config: config });
     }
 
     return HttpResponse.json({ success: true, jobId: numericJobId });

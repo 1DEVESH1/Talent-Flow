@@ -1,7 +1,12 @@
 import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { FaGripVertical, FaPencilAlt, FaTrash } from "react-icons/fa";
+import {
+  FaGripVertical,
+  FaPencilAlt,
+  FaTrash,
+  FaClipboardList,
+} from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 const statusStyles = {
@@ -34,7 +39,8 @@ const SortableJobItem = ({ job, onEdit, onArchive }) => {
 
       <div className="col-span-1 text-sm text-gray-500">{job.order}</div>
 
-      <div className="col-span-5">
+      <div className="col-span-4">
+        {" "}
         <Link
           to={`/jobs/${job.id}`}
           className="font-bold text-gray-800 hover:text-blue-600 transition-colors"
@@ -51,11 +57,21 @@ const SortableJobItem = ({ job, onEdit, onArchive }) => {
           {job.status}
         </span>
       </div>
-      <div className="col-span-3 flex justify-end items-center space-x-4">
+      <div className="col-span-4 flex justify-end items-center space-x-4">
+        {" "}
+        <Link
+          to={`/assignments/${job.id}`}
+          className="text-gray-500 hover:text-green-600 transition-colors"
+          title="Edit Assessment"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <FaClipboardList />
+        </Link>
         <button
           className="text-gray-500 hover:text-blue-600 transition-colors"
           onClick={() => onEdit(job)}
-          onPointerDown={(e) => e.stopPropagation()} >
+          onPointerDown={(e) => e.stopPropagation()}
+        >
           <FaPencilAlt />
         </button>
         <button

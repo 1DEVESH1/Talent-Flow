@@ -28,13 +28,13 @@ fs.writeFileSync(
   path.join(outputDir, "jobs.json"),
   JSON.stringify(jobs, null, 2)
 );
-console.log(`✅ Generated ${jobs.length} jobs at /public/api/jobs.json`);
+console.log(`Generated ${jobs.length} jobs at /public/api/jobs.json`);
 
 const candidates = [];
 const stages = ["applied", "screen", "tech", "offer", "hired", "rejected"];
 for (let i = 0; i < 1000; i++) {
   candidates.push({
-    id: i + 1, // Assign a stable ID
+    id: i + 1,
     name: faker.person.fullName(),
     email: faker.internet.email().toLowerCase(),
     stage: faker.helpers.arrayElement(stages),
@@ -45,7 +45,7 @@ fs.writeFileSync(
   path.join(outputDir, "candidates.json"),
   JSON.stringify(candidates, null, 2)
 );
-console.log(`✅ Generated ${candidates.length} candidates at /public/api/candidates.json`);
+console.log(`Generated ${candidates.length} candidates at /public/api/candidates.json`);
 
 console.log("\nStatic data generation complete!");
 

@@ -38,6 +38,12 @@ const updateCandidateStage = async ({ id, stage }) => {
   const { data } = await axios.patch(`/candidates/${id}`, { stage });
   return data;
 };
+const addCandidateNote = async ({ candidateId, content }) => {
+  const { data } = await axios.post(`/candidates/${candidateId}/timeline`, {
+    content,
+  });
+  return data;
+};
 
 export function useGetCandidates() {
   return useQuery({
@@ -87,6 +93,17 @@ export function useUpdateCandidateStage() {
           queryClient.invalidateQueries({ queryKey: ["candidates"] });
         }, 250);
       }
+    },
+  });
+}
+export function useAddCandidateNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: addCandidateNote,
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["candidates", variables.candidateId, "timeline"],
+      });
     },
   });
 }

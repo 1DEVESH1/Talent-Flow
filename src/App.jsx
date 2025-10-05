@@ -7,7 +7,8 @@ import { CandidatesBoard } from "./pages/candidates/CandidatesBoard";
 import Assignments from "./pages/Assessment";
 import JobDetailsPage from "./pages/jobs/JobDetailsPage";
 import { CandidateProfilePage } from "./pages/candidates/CandidateProfilePage";
-
+import { AssessmentForm } from "./pages/AssessmentForm";
+import { AssignmentsDashboard } from "./pages/AssessmentDashboard";
 const Home = () => (
   <div>
     <h1 className="text-3xl font-bold">Welcome to the Dashboard</h1>
@@ -55,7 +56,9 @@ function App() {
           path="candidates/:candidateId"
           element={<CandidateProfilePage />}
         />
-        <Route path="assignments" element={<Assignments />} />
+        <Route path="assignments" element={<AssignmentsDashboard />} />
+        <Route path="assignments/:jobId" element={<Assignments />} />
+        <Route path="/assessment/:jobId/submit" element={<AssessmentForm />} />
       </Route>
     </Routes>
   );
