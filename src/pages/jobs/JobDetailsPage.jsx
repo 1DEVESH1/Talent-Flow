@@ -1,10 +1,9 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
-import { useGetJob } from "../../api/jobs"; // 👈 1. Import the new hook
+import { useGetJob } from "../../api/jobs"; 
 
 const JobDetailsPage = () => {
   const { jobId } = useParams();
-  // 👈 2. Use the hook to fetch data, loading, and error states
   const { data: job, isLoading, isError } = useGetJob(jobId);
 
   if (isLoading) {
@@ -48,7 +47,6 @@ const JobDetailsPage = () => {
               ))}
             </div>
           </div>
-          {/* Add any other job details you want to display */}
         </div>
       )}
     </div>

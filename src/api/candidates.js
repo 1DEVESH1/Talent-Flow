@@ -31,14 +31,6 @@ const getCandidateTimeline = async (candidateId) => {
   return data;
 };
 
-const updateCandidateStage = async ({ id, stage }) => {
-  if (import.meta.env.PROD) {
-    return Promise.resolve({ success: true });
-  }
-  const { data } = await axios.patch(`/candidates/${id}`, { stage });
-  return data;
-};
-
 export function useGetCandidates() {
   return useQuery({
     queryKey: ["candidates"],
@@ -62,29 +54,48 @@ export function useGetCandidateTimeline(candidateId) {
   });
 }
 
-export function useUpdateCandidateStage() {
+export const useUpdateCandidateStage = () => {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: updateCandidateStage,
-    onMutate: async (updatedCandidate) => {
+    mutationFn: async ({ id, stage }) => {
+      const response = await fetch(`/candidates/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stage }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update candidate stage");
+      }
+      return response.json();
+    },
+    // Optimistic update logic
+    onMutate: async (newCandidate) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
       await queryClient.cancelQueries({ queryKey: ["candidates"] });
+
+      // Snapshot the previous value
       const previousCandidates = queryClient.getQueryData(["candidates"]);
 
-      queryClient.setQueryData(["candidates"], (oldCandidates = []) =>
-        oldCandidates.map((c) =>
-          c.id === updatedCandidate.id ? { ...c, ...updatedCandidate } : c
+      // Optimistically update to the new value
+      queryClient.setQueryData(["candidates"], (old) =>
+        old.map((candidate) =>
+          candidate.id === newCandidate.id
+            ? { ...candidate, ...newCandidate }
+            : candidate
         )
       );
 
+      // Return a context object with the snapshotted value
       return { previousCandidates };
     },
-    onError: (err, updatedCandidate, context) => {
+    // If the mutation fails, use the context returned from onMutate to roll back
+    onError: (err, newCandidate, context) => {
       queryClient.setQueryData(["candidates"], context.previousCandidates);
     },
+    // Always refetch after error or success to ensure data consistency
     onSettled: () => {
-      if (import.meta.env.DEV) {
-        queryClient.invalidateQueries({ queryKey: ["candidates"] });
-      }
+      queryClient.invalidateQueries({ queryKey: ["candidates"] });
     },
   });
-}
+};

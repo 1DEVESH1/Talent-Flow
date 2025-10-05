@@ -99,10 +99,17 @@ export const handlers = [
   http.get("/candidates/:candidateId/timeline", async ({ params }) => {
     await delay(await randomLatency());
     const { candidateId } = params;
-    const events = await db.timeline_events
+
+    // Check if timeline table exists
+    if (!db.timeline) {
+      return HttpResponse.json([], { status: 200 });
+    }
+
+    const events = await db.timeline
       .where("candidateId")
       .equals(parseInt(candidateId, 10))
       .sortBy("timestamp");
+
     return HttpResponse.json(events);
   }),
 
@@ -128,7 +135,7 @@ export const handlers = [
     const numericId = parseInt(id, 10);
 
     if (updates.stage) {
-      await db.timeline_events.add({
+      await db.timeline.add({
         candidateId: numericId,
         event: `Moved to "${updates.stage}" stage`,
         timestamp: new Date(),

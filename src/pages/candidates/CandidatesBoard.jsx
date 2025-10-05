@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useEffect } from "react";
-// 👇 1. Add the missing imports here
 import {
   DndContext,
   PointerSensor,
@@ -12,7 +11,6 @@ import {
   useUpdateCandidateStage,
 } from "../../api/candidates.js";
 import CandidateCard from "../../components/candidates/CandidateCard.jsx";
-// 👇 2. Corrected the import path (removed extra .jsx)
 import KanbanColumn from "../../features/KanbanColumn.jsx";
 
 const STAGES = ["applied", "screen", "tech", "offer", "hired", "rejected"];
@@ -24,15 +22,13 @@ export function CandidatesBoard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
-  // Configure sensors for instant drag start
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 1, // Start drag after 1px of movement
+        distance: 1,
       },
     }),
     useSensor(TouchSensor, {
-      // Also configure for touch devices
       activationConstraint: {
         delay: 250,
         tolerance: 5,
@@ -90,29 +86,40 @@ export function CandidatesBoard() {
     );
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Candidates Board</h1>
-        <input
-          type="text"
-          placeholder="Search by name or email..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="border border-gray-300 rounded-md p-2 w-full max-w-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-        <div className="flex gap-6 overflow-x-auto pb-4">
-          {STAGES.map((stage) => (
-            <KanbanColumn key={stage} stage={stage}>
-              {groupedCandidates[stage]?.map((candidate) => (
-                <CandidateCard key={candidate.id} candidate={candidate} />
-              ))}
-            </KanbanColumn>
-          ))}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-8 px-2">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-4xl font-extrabold text-center mb-6 text-blue-900 drop-shadow">
+          Candidates Board
+        </h1>
+        <div className="flex justify-center mb-8">
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="border border-gray-300 rounded-full px-5 py-3 w-full max-w-md shadow focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+          />
         </div>
-      </DndContext>
+
+        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+          <div className="flex gap-6 overflow-x-auto pb-4">
+            {STAGES.map((stage) => (
+              <div
+                key={stage}
+                className="bg-white/90 rounded-xl shadow-lg min-w-[320px] max-w-xs flex-1 flex flex-col"
+              >
+                <KanbanColumn stage={stage}>
+                  {groupedCandidates[stage]?.map((candidate) => (
+                    <div key={candidate.id} className="mb-4 last:mb-0">
+                      <CandidateCard candidate={candidate} />
+                    </div>
+                  ))}
+                </KanbanColumn>
+              </div>
+            ))}
+          </div>
+        </DndContext>
+      </div>
     </div>
   );
 }

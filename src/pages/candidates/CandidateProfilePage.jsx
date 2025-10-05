@@ -53,7 +53,6 @@ export const CandidateProfilePage = () => {
       </Link>
 
       <div className="grid grid-cols-3 gap-8">
-        {/* Left Column: Candidate Details */}
         <div className="col-span-1 bg-white p-6 rounded-lg shadow-md h-fit">
           <h2 className="text-2xl font-bold mb-1">{candidate?.name}</h2>
           <p className="text-gray-600 mb-4">{candidate?.email}</p>
@@ -68,7 +67,6 @@ export const CandidateProfilePage = () => {
           </span>
         </div>
 
-        {/* Right Column: Timeline */}
         <div className="col-span-2 bg-white p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-bold mb-4">Timeline</h3>
           <div>
