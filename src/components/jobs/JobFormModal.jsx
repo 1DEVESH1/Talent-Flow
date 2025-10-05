@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { useCreateJob, useUpdateJob } from "../../api/jobs";
+import { useCreateJob, useUpdateJob } from "../../hooks/useJobs";
 import { useEffect, useRef, useState } from "react";
 
 export function JobFormModal({ isOpen, onClose, job, jobsQueryKey }) {

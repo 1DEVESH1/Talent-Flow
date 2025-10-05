@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGetJobs } from "../api/jobs";
+import { useGetJobs } from "../../hooks/useJobs";
 
 export const AssignmentsDashboard = () => {
   const navigate = useNavigate();
@@ -53,3 +53,4 @@ export const AssignmentsDashboard = () => {
     </div>
   );
 };
+export default AssignmentsDashboard;

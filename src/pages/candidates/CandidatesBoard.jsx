@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import {
   DndContext,
   PointerSensor,
@@ -9,23 +9,23 @@ import {
 import {
   useGetCandidates,
   useUpdateCandidateStage,
-} from "../../api/candidates.js";
+} from "../../hooks/useCandidates.js";
 import CandidateCard from "../../components/candidates/CandidateCard.jsx";
-import KanbanColumn from "../../features/KanbanColumn.jsx";
+import KanbanColumn from "../../components/candidates/KanbanColumn.jsx";
 
 const STAGES = ["applied", "screen", "tech", "offer", "hired", "rejected"];
 
 export function CandidatesBoard() {
   const { data: candidates = [], isLoading, isError } = useGetCandidates();
   const updateStageMutation = useUpdateCandidateStage();
-
-  const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const searchInputRef = useRef(null);
+  const debounceTimerRef = useRef(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 1,
+        distance: 8,
       },
     }),
     useSensor(TouchSensor, {
@@ -35,14 +35,6 @@ export function CandidatesBoard() {
       },
     })
   );
-
-  useEffect(() => {
-    const timerId = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm.toLowerCase());
-    }, 1000);
-
-    return () => clearTimeout(timerId);
-  }, [searchTerm]);
 
   const filteredCandidates = useMemo(() => {
     if (!debouncedSearchTerm) {
@@ -76,6 +68,26 @@ export function CandidatesBoard() {
     }
   };
 
+  const handleSearchChange = useCallback(() => {
+    if(debounceTimerRef.current)
+    {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      if (searchInputRef.current) {
+        setDebouncedSearchTerm(searchInputRef.current.value.toLowerCase());
+      }
+    }, 500);
+  },[]);
+  
+   useEffect(() => {
+     return () => {
+       if (debounceTimerRef.current) {
+         clearTimeout(debounceTimerRef.current);
+       }
+     };
+   }, []);
+
   if (isLoading)
     return <div className="p-8 text-center">Loading candidates...</div>;
   if (isError)
@@ -93,10 +105,10 @@ export function CandidatesBoard() {
         </h1>
         <div className="flex justify-center mb-8">
           <input
+            ref={searchInputRef}
             type="text"
             placeholder="Search by name or email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearchChange}
             className="border border-gray-300 rounded-full px-5 py-3 w-full max-w-md shadow focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
           />
         </div>
@@ -123,3 +135,4 @@ export function CandidatesBoard() {
     </div>
   );
 }
+export default CandidatesBoard;

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { AssessmentPreview } from "../components/assessments/AssessmentPreview";
+import { AssessmentPreview } from "../../components/assessments/AssessmentPreview";
 import { FaPlus, FaSave, FaTrash, FaLink } from "react-icons/fa";
-import { useGetAssessment, usePutAssessment } from "../api/assessments";
-import { useGetJob } from "../api/jobs";
+import { useGetAssessment, usePutAssessment } from "../../hooks/useAssessment";
+import { useGetJob } from "../../hooks/useJobs";
 
 const QuestionEditor = ({ question, allQuestions, onUpdate, onDelete }) => {
   const handleInputChange = (e) => {
@@ -168,7 +168,7 @@ const QuestionEditor = ({ question, allQuestions, onUpdate, onDelete }) => {
   );
 };
 
-export const Assignments = () => {
+export const Assessment = () => {
   const { jobId } = useParams();
   const [questions, setQuestions] = useState([]);
   const { data: job } = useGetJob(jobId);
@@ -265,4 +265,4 @@ export const Assignments = () => {
   );
 };
 
-export default Assignments;
+export default Assessment;

@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
-import { useGetJob } from "../../api/jobs";
+import { useGetJob } from "../../hooks/useJobs";
 
 const JobDetailsPage = () => {
   const { jobId } = useParams();

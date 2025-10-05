@@ -1,7 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const getCandidates = async () => {
+export const getCandidates = async () => {
   if (import.meta.env.PROD) {
     const response = await fetch("/api/candidates.json");
     return response.json();
@@ -10,7 +9,7 @@ const getCandidates = async () => {
   return data;
 };
 
-const getCandidate = async (candidateId) => {
+export const getCandidate = async (candidateId) => {
   if (import.meta.env.PROD) {
     const response = await fetch("/api/candidates.json");
     const candidates = await response.json();
@@ -20,7 +19,7 @@ const getCandidate = async (candidateId) => {
   return data;
 };
 
-const getCandidateTimeline = async (candidateId) => {
+export const getCandidateTimeline = async (candidateId) => {
   if (import.meta.env.PROD) {
     return Promise.resolve([
       { event: "Applied (Demo)", date: "2024-10-01" },
@@ -31,79 +30,16 @@ const getCandidateTimeline = async (candidateId) => {
   return data;
 };
 
-const updateCandidateStage = async ({ id, stage }) => {
+export const updateCandidateStage = async ({ id, stage }) => {
   if (import.meta.env.PROD) {
     return Promise.resolve({ success: true });
   }
   const { data } = await axios.patch(`/candidates/${id}`, { stage });
   return data;
 };
-const addCandidateNote = async ({ candidateId, content }) => {
+export const addCandidateNote = async ({ candidateId, content }) => {
   const { data } = await axios.post(`/candidates/${candidateId}/timeline`, {
     content,
   });
   return data;
 };
-
-export function useGetCandidates() {
-  return useQuery({
-    queryKey: ["candidates"],
-    queryFn: getCandidates,
-  });
-}
-
-export function useGetCandidate(candidateId) {
-  return useQuery({
-    queryKey: ["candidates", candidateId],
-    queryFn: () => getCandidate(candidateId),
-    enabled: !!candidateId,
-  });
-}
-
-export function useGetCandidateTimeline(candidateId) {
-  return useQuery({
-    queryKey: ["candidates", candidateId, "timeline"],
-    queryFn: () => getCandidateTimeline(candidateId),
-    enabled: !!candidateId,
-  });
-}
-
-export function useUpdateCandidateStage() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: updateCandidateStage,
-    onMutate: async (updatedCandidate) => {
-      await queryClient.cancelQueries({ queryKey: ["candidates"] });
-      const previousCandidates = queryClient.getQueryData(["candidates"]);
-
-      queryClient.setQueryData(["candidates"], (oldCandidates = []) =>
-        oldCandidates.map((c) =>
-          c.id === updatedCandidate.id ? { ...c, ...updatedCandidate } : c
-        )
-      );
-
-      return { previousCandidates };
-    },
-    onError: (err, updatedCandidate, context) => {
-      queryClient.setQueryData(["candidates"], context.previousCandidates);
-    },
-    onSettled: () => {
-      if (import.meta.env.DEV) {
-        setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ["candidates"] });
-        }, 250);
-      }
-    },
-  });
-}
-export function useAddCandidateNote() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: addCandidateNote,
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["candidates", variables.candidateId, "timeline"],
-      });
-    },
-  });
-}

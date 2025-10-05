@@ -4,11 +4,10 @@ import {
   useGetCandidate,
   useGetCandidateTimeline,
   useAddCandidateNote,
-} from "../../api/candidates"; 
+} from "../../hooks/useCandidates.js"; 
 import { HiOutlineCalendar, HiOutlinePencilAlt } from "react-icons/hi";
 import { AddNoteForm } from "../../components/candidates/AddNoteForm"; 
 
-// A simple utility to parse and render @mentions
 const renderWithMentions = (text) => {
   if (!text) return null;
   const parts = text.split(/(@\w+)/g);
@@ -119,3 +118,4 @@ export const CandidateProfilePage = () => {
     </div>
   );
 };
+export default CandidateProfilePage;

@@ -1,14 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { Routes, Route, Outlet } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
-import { JobsBoard } from "./pages/jobs/JobsBoard";
-import { CandidatesBoard } from "./pages/candidates/CandidatesBoard";
-import Assignments from "./pages/Assessment";
-import JobDetailsPage from "./pages/jobs/JobDetailsPage";
-import { CandidateProfilePage } from "./pages/candidates/CandidateProfilePage";
-import { AssessmentForm } from "./pages/AssessmentForm";
-import { AssignmentsDashboard } from "./pages/AssessmentDashboard";
+const JobsBoard = React.lazy(() => import("./pages/jobs/JobsBoard"));
+const CandidatesBoard = React.lazy(() =>
+  import("./pages/candidates/CandidatesBoard")
+);
+const Assignments = React.lazy(() => import("./pages/assessment/Assessment"));
+const JobDetailsPage = React.lazy(() => import("./pages/jobs/JobDetailsPage"));
+const CandidateProfilePage = React.lazy(() =>
+  import("./pages/candidates/CandidateProfilePage")
+);
+const AssessmentForm = React.lazy(() =>
+  import("./pages/assessment/AssessmentForm")
+);
+const AssignmentsDashboard = React.lazy(() =>
+  import("./pages/assessment/AssessmentDashboard")
+);
+
+const PageLoader = () => (
+  <div className="flex justify-center items-center h-full">
+    <div className="text-lg font-semibold">Loading Page...</div>
+  </div>
+);
 const Home = () => (
   <div>
     <h1 className="text-3xl font-bold">Welcome to the Dashboard</h1>
@@ -27,11 +42,14 @@ const AppLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <Toaster position="top-center" reverseOrder={false} />
       <Header onMenuClick={() => setSidebarOpen(!isSidebarOpen)} />
       <div className="flex flex-1">
         <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
         <main className="flex-grow p-4 md:p-8 bg-gray-50">
-          <Outlet />
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
       {isSidebarOpen && (
