@@ -5,6 +5,21 @@ This project is a sophisticated front-end application that simulates a full back
 
 ---
 
+### ⚠️ A Note on the Deployed Version
+
+The live-deployed version of this application is for **demonstration purposes only**. It showcases the UI, component structure, and the overall user experience.
+
+> **Note**: In the deployed version, data for the **Jobs** and **Candidates** boards is loaded from static `json` files. This means you can view, search, and filter the data, but any actions that add new data (such as creating jobs, adding a note, assessment builder) will not be saved.
+
+Because of this limitation, the following features are not functional on the live site:
+- Creating a job.
+- Adding a note to a candidate's timeline.
+- Saving changes to an assessment.
+
+To experience the full functionality of the application, including data persistence and optimistic UI updates, **it is highly recommended to run the project on a local machine** by following the installation steps. The local development environment uses Mock Service Worker (MSW) and IndexedDB to simulate a complete backend experience.
+
+
+---
 ## ✨ Features
 
 ### 📋 Job Management (Jobs Board)
