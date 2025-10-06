@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 import {
   DndContext,
   PointerSensor,
@@ -69,8 +75,7 @@ export function CandidatesBoard() {
   };
 
   const handleSearchChange = useCallback(() => {
-    if(debounceTimerRef.current)
-    {
+    if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
     debounceTimerRef.current = setTimeout(() => {
@@ -78,15 +83,15 @@ export function CandidatesBoard() {
         setDebouncedSearchTerm(searchInputRef.current.value.toLowerCase());
       }
     }, 500);
-  },[]);
-  
-   useEffect(() => {
-     return () => {
-       if (debounceTimerRef.current) {
-         clearTimeout(debounceTimerRef.current);
-       }
-     };
-   }, []);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   if (isLoading)
     return <div className="p-8 text-center">Loading candidates...</div>;
